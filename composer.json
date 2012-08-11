@@ -12,7 +12,7 @@
     "support": {
         "email": "team@hipmob.com"
     },
-    "require": { "php": ">=5.2" },
+    "require": { "php": ">=5.2", "ext-json": "*" },
     "autoload": {
     	"psr-0": {
 	    "Hipmob": "lib/"
