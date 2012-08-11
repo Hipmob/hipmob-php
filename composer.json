@@ -1,0 +1,22 @@
+{
+    "name": "hipmob/hipmob-php",
+    "description": "Hipmob API PHP Bindings",
+    "version": "0.1.0",
+    "keywords": [ "hipmob","api", "chat"],
+    "homepage": "https://www.hipmob.com.com/",	
+    "license": "Apache-2.0",
+    "authors": [ {
+	"name": "Hipmob",
+	"homepage": "https://github.com/Hipmob/hipmob-php/contributors"
+    } ],
+    "support": {
+        "email": "support@example.org",
+        "irc": "irc://irc.freenode.org/composer"
+    },
+    "require": { "php": ">=5.2" },
+    "autoload": {
+	"psr-0": {
+	    "Hipmob": "lib/"
+	}
+    }
+}
