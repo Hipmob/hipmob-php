@@ -10,12 +10,11 @@
 	"homepage": "https://github.com/Hipmob/hipmob-php/contributors"
     } ],
     "support": {
-        "email": "support@example.org",
-        "irc": "irc://irc.freenode.org/composer"
+        "email": "team@hipmob.com"
     },
     "require": { "php": ">=5.2" },
     "autoload": {
-	"psr-0": {
+    	"psr-0": {
 	    "Hipmob": "lib/"
 	}
     }
