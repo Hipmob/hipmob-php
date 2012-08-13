@@ -6,13 +6,14 @@ if (!function_exists('json_decode')) {
  }
 
 // Errors
-/*
 require(dirname(__FILE__) . '/Hipmob/Error.php');
-require(dirname(__FILE__) . '/Hipmob/ApiError.php');
-require(dirname(__FILE__) . '/Hipmob/ApiConnectionError.php');
 require(dirname(__FILE__) . '/Hipmob/AuthenticationError.php');
+require(dirname(__FILE__) . '/Hipmob/ApplicationNotSpecifiedError.php');
+require(dirname(__FILE__) . '/Hipmob/DeviceNotSpecifiedError.php');
+require(dirname(__FILE__) . '/Hipmob/FriendNotSpecifiedError.php');
 require(dirname(__FILE__) . '/Hipmob/InvalidRequestError.php');
-*/
+require(dirname(__FILE__) . '/Hipmob/ApplicationNotFoundError.php');
+require(dirname(__FILE__) . '/Hipmob/DeviceNotFoundError.php');
 
 // Hipmob API Resources
 require(dirname(__FILE__) . '/Hipmob/App.php');
@@ -23,16 +24,17 @@ class Hipmob
   private $username;
   private $apikey;
 
-  //private static $baseurl = 'https://api.hipmob.com/';
-  private static $baseurl = 'https://hapi.wanderplayer.com/';
+  private $baseurl = 'https://api.hipmob.com/';
   private static $verifySslCerts = true;
   
   const VERSION = '0.1.0';
 
   public function __construct($username, $apikey)
   {
+    if(!$username || !$apikey) throw new AuthenticationError(401, "Authentication required"); 
     $this->username = $username;
     $this->apikey = $apikey;
+    if(isset($_SERVER['hipmob_server'])) $this->baseurl = $_SERVER['hipmob_server'];
   }
   
   public function getAPIKey()
@@ -67,7 +69,7 @@ class Hipmob
     $responsedata = false;
     
     // make the request
-    $url = self::$baseurl . "apps";
+    $url = $this->baseurl . "apps";
     $header = sprintf('Authorization: Basic %s', base64_encode($this->username.':'.$this->apikey));
     $context = stream_context_create(array('http' => array(
 							   // set HTTP method
@@ -75,10 +77,12 @@ class Hipmob
 							   'header' => $header,
 							   'timeout' => 10,
 							   )));
-    $fp = fopen($url, 'r', false, $context);
+    $fp = @fopen($url, 'r', false, $context);
+    if($fp == FALSE) throw new AuthenticationError(401, "Unauthorized"); 
     $md = stream_get_meta_data($fp);
     if(isset($md['wrapper_data'])){
       $md = $md['wrapper_data'];
+      $this->_check_for_errors($md[0]);
       $contentlength = false;
       $contenttype = false;
       foreach($md as $header){
@@ -104,12 +108,44 @@ class Hipmob
     return $res;
   }
 
+  private function _check_for_errors($statusline)
+  {
+    $pattern1 = "/HTTP\/1\.1 400 No application specified\./";
+    $pattern2 = "/HTTP\/1\.1 400 No device specified\./";
+    $pattern3 = "/HTTP\/1\.1 402 API Request Failed\./";
+    $pattern4 = "/HTTP\/1\.1 404 Device not found\./";
+    $pattern5 = "/HTTP\/1\.1 404 Application not found\./";
+    $pattern6 = "/HTTP\/1\.1 400 No friends specified\./";
+    $pattern7 = "/HTTP\/1\.1 401 Unauthorized/";
+    $pattern8 = "/HTTP\/1\.1 401 Authentication required/";
+    
+    if(preg_match($pattern1, $statusline, $matches) == 1){
+      throw new AuthenticationError(401, "Unauthorized"); 
+    }else if(preg_match($pattern1, $statusline, $matches) == 1){
+      throw new AuthenticationError(401, "Authentication required"); 
+    }else if(preg_match($pattern1, $statusline, $matches) == 1){
+      throw new ApplicationNotSpecifiedError(400, "No application specified"); 
+    }else if(preg_match($pattern2, $statusline, $matches) == 1){
+      throw new DeviceNotSpecifiedError(400, "No device specified"); 
+    }else if(preg_match($pattern3, $statusline, $matches) == 1){
+      throw new InvalidRequestError(402, "Invalid request");
+    }else if(preg_match($pattern4, $statusline, $matches) == 1){
+      throw new DeviceNotFoundError(404, "Device not found");
+    }else if(preg_match($pattern5, $statusline, $matches) == 1){
+      throw new ApplicationNotFoundError(404, "Application not found");
+    }else if(preg_match($pattern6, $statusline, $matches) == 1){
+      throw new FriendsNotSpecifiedError(400, "No friends specified"); 
+    }
+  }
+
   public function get_application($id)
   {
     $res = false;
     
     // make the request
-    $url = self::$baseurl . "apps/" . $id;
+    $val = trim($id);
+    if($val == "") throw new ApplicationNotSpecifiedError(400, "No application specified"); 
+    $url = $this->baseurl . "apps/" . $val;
     $header = sprintf('Authorization: Basic %s', base64_encode($this->username.':'.$this->apikey));
     $context = stream_context_create(array('http' => array(
 							   // set HTTP method
@@ -117,10 +153,12 @@ class Hipmob
 							   'header' => $header,
 							   'timeout' => 10,
 							   )));
-    $fp = fopen($url, 'r', false, $context);
+    $fp = @fopen($url, 'r', false, $context);
+    if($fp == FALSE) throw new AuthenticationError(401, "Unauthorized"); 
     $md = stream_get_meta_data($fp);
     if(isset($md['wrapper_data'])){
       $md = $md['wrapper_data'];
+      $this->_check_for_errors($md[0]);
       $contentlength = false;
       $contenttype = false;
       foreach($md as $header){
@@ -151,8 +189,13 @@ class Hipmob
     }
     $res = false;
     
+    $val = trim($app);
+    if($val == "") throw new ApplicationNotSpecifiedError(400, "No application specified"); 
+    $device = trim($id);
+    if($device == "") throw new DeviceNotSpecifiedError(400, "No device specified"); 
+
     // make the request
-    $url = self::$baseurl . "apps/" . $app . "/devices/". $id;
+    $url = $this->baseurl . "apps/" . $val . "/devices/". $device;
     $header = sprintf('Authorization: Basic %s', base64_encode($this->username.':'.$this->apikey));
     $context = stream_context_create(array('http' => array(
 							   // set HTTP method
@@ -160,10 +203,12 @@ class Hipmob
 							   'header' => $header,
 							   'timeout' => 10,
 							   )));
-    $fp = fopen($url, 'r', false, $context);
+    $fp = @fopen($url, 'r', false, $context);
+    if($fp == FALSE) throw new AuthenticationError(401, "Unauthorized"); 
     $md = stream_get_meta_data($fp);
     if(isset($md['wrapper_data'])){
       $md = $md['wrapper_data'];
+      $this->_check_for_errors($md[0]);
       $contentlength = false;
       $contenttype = false;
       foreach($md as $header){
@@ -187,12 +232,17 @@ class Hipmob
     return $res;
   }
 
-  public function _get_available_message_count($app, $id)
+  public function _get_available_message_count($appid, $deviceid)
   {
     $res = false;
     
+    $app = trim($appid);
+    if($app == "") throw new ApplicationNotSpecifiedError(400, "No application specified"); 
+    $id = trim($deviceid);
+    if($id == "") throw new DeviceNotSpecifiedError(400, "No device specified"); 
+
     // make the request
-    $url = self::$baseurl . "apps/" . $app . "/devices/" . $id . "/messagecount";
+    $url = $this->baseurl . "apps/" . $app . "/devices/" . $id . "/messagecount";
     $header = sprintf('Authorization: Basic %s', base64_encode($this->username.':'.$this->apikey));
     $context = stream_context_create(array('http' => array(
 							   // set HTTP method
@@ -200,10 +250,12 @@ class Hipmob
 							   'header' => $header,
 							   'timeout' => 10,
 							   )));
-    $fp = fopen($url, 'r', false, $context);
+    $fp = @fopen($url, 'r', false, $context);
+    if($fp == FALSE) throw new AuthenticationError(401, "Unauthorized"); 
     $md = stream_get_meta_data($fp);
     if(isset($md['wrapper_data'])){
       $md = $md['wrapper_data'];
+      $this->_check_for_errors($md[0]);
       $contentlength = false;
       $contenttype = false;
       foreach($md as $header){
@@ -225,14 +277,19 @@ class Hipmob
     return 0;
   }
 
-  public function _get_device_friends($app, $id)
+  public function _get_device_friends($appid, $deviceid)
   {
+    $app = trim($appid);
+    if($app == "") throw new ApplicationNotSpecifiedError(400, "No application specified"); 
+    $id = trim($deviceid);
+    if($id == "") throw new DeviceNotSpecifiedError(400, "No device specified"); 
+
     $res = array();
     
     $responsedata = false;
 
     // make the request
-    $url = self::$baseurl . "apps/" . $app . "/devices/" . $id . "/friends";
+    $url = $this->baseurl . "apps/" . $app . "/devices/" . $id . "/friends";
     $header = sprintf('Authorization: Basic %s', base64_encode($this->username.':'.$this->apikey));
     $context = stream_context_create(array('http' => array(
 							   // set HTTP method
@@ -240,10 +297,12 @@ class Hipmob
 							   'header' => $header,
 							   'timeout' => 10,
 							   )));
-    $fp = fopen($url, 'r', false, $context);
+    $fp = @fopen($url, 'r', false, $context);
+    if($fp == FALSE) throw new AuthenticationError(401, "Unauthorized"); 
     $md = stream_get_meta_data($fp);
     if(isset($md['wrapper_data'])){
       $md = $md['wrapper_data'];
+      $this->_check_for_errors($md[0]);
       $contentlength = false;
       $contenttype = false;
       foreach($md as $header){
@@ -269,14 +328,23 @@ class Hipmob
     return $res;
   }
 
-  public function _add_device_friends($app, $id, $devices)
+  public function _add_device_friends($appid, $deviceid, $devices)
   {
+    $app = trim($appid);
+    if($app == "") throw new ApplicationNotSpecifiedError(400, "No application specified"); 
+    $id = trim($deviceid);
+    if($id == "") throw new DeviceNotSpecifiedError(400, "No device specified"); 
+    foreach($devices as $val){
+      if(!$val || gettype($val) != "object" || get_class($val) != "HipmobDevice")
+	throw new FriendNotSpecifiedError(400, "No friends specified"); 
+    }
+
     $res = false;
     
     $responsedata = false;
 
     // make the request
-    $url = self::$baseurl . "apps/" . $app . "/devices/" . $id . "/friends";
+    $url = $this->baseurl . "apps/" . $app . "/devices/" . $id . "/friends";
     $header = sprintf('Authorization: Basic %s', base64_encode($this->username.':'.$this->apikey));
     $header .= "\r\nContent-Type: application/x-www-form-urlencoded";
     
@@ -293,33 +361,44 @@ class Hipmob
 							   'timeout' => 10,
 							   'content' => $content
 							   )));
-    $fp = fopen($url, 'r', false, $context);
+    $fp = @fopen($url, 'r', false, $context);
+    if($fp == FALSE) throw new AuthenticationError(401, "Unauthorized"); 
     $md = stream_get_meta_data($fp);
     if(isset($md['wrapper_data'])){
       $md = $md['wrapper_data'];
-      if(strpos($md[0], "HTTP/1.1 200")){
-	$res = substr($md[0], 13);
-      }
+      $this->_check_for_errors($md[0]);
+      $responsedata = $md[0];
     }
     fclose($fp);
     
-    if($res){
-      if($res === "No changes made.") $res = false;
-      else if(strpos($res, "Friend list updated (") === 0){
-	$bits = explode('(', $res);
+    if($responsedata){
+      $pattern1 = "/HTTP\/1\.1 200 Friend list updated \((\d*) friends added\)\./";
+      $pattern2 = "/HTTP\/1\.1 200 No changes made\./";
+
+      if(preg_match($pattern1, $md[0], $matches) == 1){
+	$res = $matches[1];
+      }else if(preg_match($pattern2, $md[0], $matches) == 1){
+	$res = 0;
       }
     }
     return $res;
   }
 
-  public function _remove_device_friend($app, $id, $device)
+  public function _remove_device_friend($appid, $deviceid, $device)
   {
+    $app = trim($appid);
+    if($app == "") throw new ApplicationNotSpecifiedError(400, "No application specified"); 
+    $id = trim($deviceid);
+    if($id == "") throw new DeviceNotSpecifiedError(400, "No device specified"); 
+    if(!$device || gettype($device) != "object" || get_class($device) != "HipmobDevice")
+      throw new FriendNotSpecifiedError(400, "No friends specified"); 
+    
     $res = false;
     
     $responsedata = false;
 
     // make the request
-    $url = self::$baseurl . "apps/" . $app . "/devices/" . $id . "/friends/" . $device->get_id();
+    $url = $this->baseurl . "apps/" . $app . "/devices/" . $id . "/friends/" . $device->get_id();
     $header = sprintf('Authorization: Basic %s', base64_encode($this->username.':'.$this->apikey));
     $header .= "\r\nContent-Type: application/x-www-form-urlencoded";
     
@@ -329,21 +408,24 @@ class Hipmob
 							   'header' => $header,
 							   'timeout' => 10
 							   )));
-    $fp = fopen($url, 'r', false, $context);
+    $fp = @fopen($url, 'r', false, $context);
+    if($fp == FALSE) throw new AuthenticationError(401, "Unauthorized"); 
     $md = stream_get_meta_data($fp);
     if(isset($md['wrapper_data'])){
       $md = $md['wrapper_data'];
-      echo $md[0];
-      if(strpos($md[0], "HTTP/1.1 200")){
-	$res = substr($md[0], 13);
-      }
+      $this->_check_for_errors($md[0]);
+      $responsedata = $md[0];
     }
     fclose($fp);
     
-    if($res){
-      if($res === "No changes made.") $res = false;
-      else if(strpos($res, "Friend list updated (") === 0){
-	$bits = explode('(', $res);
+    if($responsedata){
+      $pattern1 = "/HTTP\/1\.1 200 Friend removed\./";
+      $pattern2 = "/HTTP\/1\.1 200 No changes made\./";
+
+      if(preg_match($pattern1, $md[0], $matches) == 1){
+	$res = 1;
+      }else if(preg_match($pattern2, $md[0], $matches) == 1){
+	$res = 0;
       }
     }
     return $res;
@@ -351,12 +433,17 @@ class Hipmob
 
   public function _remove_device_friends($app, $id)
   {
+    $app = trim($appid);
+    if($app == "") throw new ApplicationNotSpecifiedError(400, "No application specified"); 
+    $id = trim($deviceid);
+    if($id == "") throw new DeviceNotSpecifiedError(400, "No device specified"); 
+
     $res = false;
     
     $responsedata = false;
 
     // make the request
-    $url = self::$baseurl . "apps/" . $app . "/devices/" . $id . "/friends";
+    $url = $this->baseurl . "apps/" . $app . "/devices/" . $id . "/friends";
     $header = sprintf('Authorization: Basic %s', base64_encode($this->username.':'.$this->apikey));
     $header .= "\r\nContent-Type: application/x-www-form-urlencoded";
     
@@ -366,10 +453,12 @@ class Hipmob
 							   'header' => $header,
 							   'timeout' => 10
 							   )));
-    $fp = fopen($url, 'r', false, $context);
+    $fp = @fopen($url, 'r', false, $context);
+    if($fp == FALSE) throw new AuthenticationError(401, "Unauthorized"); 
     $md = stream_get_meta_data($fp);
     if(isset($md['wrapper_data'])){
       $md = $md['wrapper_data'];
+      $this->_check_for_errors($md[0]);
       $responsedata = $md[0];
     }
     fclose($fp);
@@ -389,12 +478,17 @@ class Hipmob
 
   public function _set_device_friends($app, $id, $devices)
   {
+    $app = trim($appid);
+    if($app == "") throw new ApplicationNotSpecifiedError(400, "No application specified"); 
+    $id = trim($deviceid);
+    if($id == "") throw new DeviceNotSpecifiedError(400, "No device specified"); 
+
     $res = false;
     
     $responsedata = false;
 
     // make the request
-    $url = self::$baseurl . "apps/" . $app . "/devices/" . $id . "/friends";
+    $url = $this->baseurl . "apps/" . $app . "/devices/" . $id . "/friends";
     $header = sprintf('Authorization: Basic %s', base64_encode($this->username.':'.$this->apikey));
     $header .= "\r\nContent-Type: application/x-www-form-urlencoded";
     
@@ -411,10 +505,12 @@ class Hipmob
 							   'timeout' => 10,
 							   'content' => $content
 							   )));
-    $fp = fopen($url, 'r', false, $context);
+    $fp = @fopen($url, 'r', false, $context);
+    if($fp == FALSE) throw new AuthenticationError(401, "Unauthorized"); 
     $md = stream_get_meta_data($fp);
     if(isset($md['wrapper_data'])){
       $md = $md['wrapper_data'];
+      $this->_check_for_errors($md[0]);
       $responsedata = $md[0];
     }
     fclose($fp);
