@@ -77,7 +77,7 @@ class Hipmob_Device
   {
     if(!is_array($devices)) $f = array($devices);
     else $f = $devices;
-    return $this->hipmob->_add_friends($this->app, $this->id, $f);
+    return $this->hipmob->_add_device_friends($this->app, $this->id, $f);
   }
   
   public function add_friend($device)
@@ -88,5 +88,32 @@ class Hipmob_Device
   public function add_friends($devices)
   {
     return $this->_add_friends($devices);
+  }
+
+  private function _set_friends($devices)
+  {
+    if(!is_array($devices)) $f = array($devices);
+    else $f = $devices;
+    return $this->hipmob->_set_device_friends($this->app, $this->id, $f);
+  }
+  
+  public function set_friend($device)
+  {
+    return $this->_set_friends($device);
+  }
+  
+  public function set_friends($devices)
+  {
+    return $this->_set_friends($devices);
+  }
+
+  public function remove_friend($device)
+  {
+    return $this->hipmob->_remove_device_friend($this->app, $this->id, $device);
+  }
+  
+  public function remove_all_friends()
+  {
+    return $this->hipmob->_remove_device_friends($this->app, $this->id);
   }
 }
