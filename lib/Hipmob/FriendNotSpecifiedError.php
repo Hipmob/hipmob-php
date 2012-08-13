@@ -1,5 +1,5 @@
 <?php
 
-class FriendNotSpecifiedError extends HipmobError
+class Hipmob_FriendNotSpecifiedError extends Hipmob_Error
 {
 }

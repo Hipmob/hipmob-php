@@ -1,5 +1,5 @@
 <?php
 
-class InvalidRequestError extends HipmobError
+class Hipmob_InvalidRequestError extends Hipmob_Error
 {
 }

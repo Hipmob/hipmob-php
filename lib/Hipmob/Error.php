@@ -1,6 +1,6 @@
 <?php
 
-class HipmobError extends Exception
+class Hipmob_Error extends Exception
 {
   public function __construct($message=null, $http_status=null)
   {

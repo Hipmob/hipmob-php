@@ -21,6 +21,7 @@ Simple usage looks like:
 
 = Documentation
 
+For details examples of how to use the various functions, see the test cases.
 Please see https://www.hipmob.com/documentation/api.html for detailed documentation.
 
 = Inspiration

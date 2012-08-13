@@ -1,5 +1,5 @@
 <?php
 
-class ApplicationNotFoundError extends HipmobError
+class Hipmob_ApplicationNotFoundError extends Hipmob_Error
 {
 }

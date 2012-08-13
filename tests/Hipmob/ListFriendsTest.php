@@ -2,18 +2,13 @@
 
 require_once("lib/Hipmob.php");
 
-// test the AuthenticationError
+// list all the test device's friends
 if(!isset($_SERVER['hipmob_username']) || !isset($_SERVER['hipmob_password']) || !isset($_SERVER['hipmob_app'])){
   echo "Please provide the username, password and application mobile key as environment variables.\r\n";
   return;
  }
 
-try {
-  $hipmob = new Hipmob('invalid', 'invalid');
-  $apps = $hipmob->get_applications();
-  print_r($apps);
-} catch (Hipmob_AuthenticationError $e) {
-  //echo 401 == $e->getHttpStatus();
-  echo "PASSED: AuthenticationErrorTest\r\n";
-  }
+$hipmob = new Hipmob($_SERVER['hipmob_username'], $_SERVER['hipmob_password']);
+$dev = $hipmob->get_device($_SERVER['hipmob_app'],'C2342640-9C7B-4ef3-B894-BF12D5399301', false);
+print_r($dev->list_friends());
 
