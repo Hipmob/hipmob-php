@@ -1,5 +1,5 @@
 <?php
 
-class AuthenticationError extends HipmobError
+class Hipmob_AuthenticationError extends Hipmob_Error
 {
 }

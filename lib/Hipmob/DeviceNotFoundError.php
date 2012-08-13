@@ -1,5 +1,5 @@
 <?php
 
-class DeviceNotFoundError extends HipmobError
+class Hipmob_DeviceNotFoundError extends Hipmob_Error
 {
 }
