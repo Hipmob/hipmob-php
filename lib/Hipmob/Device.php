@@ -116,4 +116,19 @@ class Hipmob_Device
   {
     return $this->hipmob->_remove_device_friends($this->app, $this->id);
   }
+
+  public function send_text_message($text)
+  {
+    return $this->hipmob->_send_text_message($this->app, $this->id, $text);
+  }
+  
+  public function send_picture_message($file, $mime_type)
+  {
+    return $this->hipmob->_send_file_message($this->app, $this->id, $file, $mime_type);
+  }
+  
+  public function send_audio_message($file, $mime_type)
+  {
+    return $this->hipmob->_send_file_message($this->app, $this->id, $file, $mime_type);
+  }
 }

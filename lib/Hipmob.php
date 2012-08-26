@@ -14,6 +14,7 @@ require(dirname(__FILE__) . '/Hipmob/FriendNotSpecifiedError.php');
 require(dirname(__FILE__) . '/Hipmob/InvalidRequestError.php');
 require(dirname(__FILE__) . '/Hipmob/ApplicationNotFoundError.php');
 require(dirname(__FILE__) . '/Hipmob/DeviceNotFoundError.php');
+require(dirname(__FILE__) . '/Hipmob/FormatNotSupportedError.php');
 
 // Hipmob API Resources
 require(dirname(__FILE__) . '/Hipmob/App.php');
@@ -82,20 +83,23 @@ class Hipmob
     $md = stream_get_meta_data($fp);
     if(isset($md['wrapper_data'])){
       $md = $md['wrapper_data'];
-      $this->_check_for_errors($md[0]);
-      $contentlength = false;
-      $contenttype = false;
-      foreach($md as $header){
-	if(strpos($header, 'Content-Length: ') === 0) $contentlength = self::_get_header_value($header);
-	else if(strpos($header, 'Content-Type: ') === 0) $contenttype = self::_get_header_value($header);
-	if($contenttype && $contentlength) break;
-      }
-      if(!$contenttype || $contenttype != 'application/vnd.com.hipmob.App-list+json; version=1.0'){
-
-      }else if(!$contentlength){
+      if(is_array($md)){
+	$this->_check_for_errors($md[0]);
+	$contentlength = false;
+	$contenttype = false;
+	foreach($md as $header){
+	  if(strpos($header, 'Content-Length: ') === 0) $contentlength = self::_get_header_value($header);
+	  else if(strpos($header, 'Content-Type: ') === 0) $contenttype = self::_get_header_value($header);
+	  if($contenttype && $contentlength) break;
+	}
 	
-      }else{
-	$responsedata = json_decode(fread($fp, intval($contentlength)));
+	if(!$contenttype || $contenttype != 'application/vnd.com.hipmob.App-list+json; version=1.0'){
+	  
+	}else if(!$contentlength){
+	  
+	}else{
+	  $responsedata = json_decode(fread($fp, intval($contentlength)));
+	}
       }
     }
     fclose($fp);
@@ -158,20 +162,22 @@ class Hipmob
     $md = stream_get_meta_data($fp);
     if(isset($md['wrapper_data'])){
       $md = $md['wrapper_data'];
-      $this->_check_for_errors($md[0]);
-      $contentlength = false;
-      $contenttype = false;
-      foreach($md as $header){
-	if(strpos($header, 'Content-Length: ') === 0) $contentlength = self::_get_header_value($header);
-	else if(strpos($header, 'Content-Type: ') === 0) $contenttype = self::_get_header_value($header);
-	if($contenttype && $contentlength) break;
-      }
-      if(!$contenttype || $contenttype != 'application/vnd.com.hipmob.App+json; version=1.0'){
-
-      }else if(!$contentlength){
-	
-      }else{
-	$res = json_decode(fread($fp, intval($contentlength)));
+      if(is_array($md)){
+	$this->_check_for_errors($md[0]);
+	$contentlength = false;
+	$contenttype = false;
+	foreach($md as $header){
+	  if(strpos($header, 'Content-Length: ') === 0) $contentlength = self::_get_header_value($header);
+	  else if(strpos($header, 'Content-Type: ') === 0) $contenttype = self::_get_header_value($header);
+	  if($contenttype && $contentlength) break;
+	}
+	if(!$contenttype || $contenttype != 'application/vnd.com.hipmob.App+json; version=1.0'){
+	  
+	}else if(!$contentlength){
+	  
+	}else{
+	  $res = json_decode(fread($fp, intval($contentlength)));
+	}
       }
     }
     fclose($fp);
@@ -208,20 +214,22 @@ class Hipmob
     $md = stream_get_meta_data($fp);
     if(isset($md['wrapper_data'])){
       $md = $md['wrapper_data'];
-      $this->_check_for_errors($md[0]);
-      $contentlength = false;
-      $contenttype = false;
-      foreach($md as $header){
-	if(strpos($header, 'Content-Length: ') === 0) $contentlength = self::_get_header_value($header);
-	else if(strpos($header, 'Content-Type: ') === 0) $contenttype = self::_get_header_value($header);
-	if($contenttype && $contentlength) break;
-      }
-      if(!$contenttype || $contenttype != 'application/vnd.com.hipmob.Device+json; version=1.0'){
-	
-      }else if(!$contentlength){
-	
-      }else{
-	$res = json_decode(fread($fp, intval($contentlength)));
+      if(is_array($md)){
+	$this->_check_for_errors($md[0]);
+	$contentlength = false;
+	$contenttype = false;
+	foreach($md as $header){
+	  if(strpos($header, 'Content-Length: ') === 0) $contentlength = self::_get_header_value($header);
+	  else if(strpos($header, 'Content-Type: ') === 0) $contenttype = self::_get_header_value($header);
+	  if($contenttype && $contentlength) break;
+	}
+	if(!$contenttype || $contenttype != 'application/vnd.com.hipmob.Device+json; version=1.0'){
+	  
+	}else if(!$contentlength){
+	  
+	}else{
+	  $res = json_decode(fread($fp, intval($contentlength)));
+	}
       }
     }
     fclose($fp);
@@ -255,20 +263,22 @@ class Hipmob
     $md = stream_get_meta_data($fp);
     if(isset($md['wrapper_data'])){
       $md = $md['wrapper_data'];
-      $this->_check_for_errors($md[0]);
-      $contentlength = false;
-      $contenttype = false;
-      foreach($md as $header){
-	if(strpos($header, 'Content-Length: ') === 0) $contentlength = self::_get_header_value($header);
-	else if(strpos($header, 'Content-Type: ') === 0) $contenttype = self::_get_header_value($header);
-	if($contenttype && $contentlength) break;
-      }
-      if(!$contenttype || $contenttype != 'application/vnd.com.hipmob.Device.pendingmessagecount+json; version=1.0'){
-
-      }else if(!$contentlength){
-	
-      }else{
-	$res = json_decode(fread($fp, intval($contentlength)));
+      if(is_array($md)){
+	$this->_check_for_errors($md[0]);
+	$contentlength = false;
+	$contenttype = false;
+	foreach($md as $header){
+	  if(strpos($header, 'Content-Length: ') === 0) $contentlength = self::_get_header_value($header);
+	  else if(strpos($header, 'Content-Type: ') === 0) $contenttype = self::_get_header_value($header);
+	  if($contenttype && $contentlength) break;
+	}
+	if(!$contenttype || $contenttype != 'application/vnd.com.hipmob.Device.pendingmessagecount+json; version=1.0'){
+	  
+	}else if(!$contentlength){
+	  
+	}else{
+	  $res = json_decode(fread($fp, intval($contentlength)));
+	}
       }
     }
     fclose($fp);
@@ -302,20 +312,22 @@ class Hipmob
     $md = stream_get_meta_data($fp);
     if(isset($md['wrapper_data'])){
       $md = $md['wrapper_data'];
-      $this->_check_for_errors($md[0]);
-      $contentlength = false;
-      $contenttype = false;
-      foreach($md as $header){
-	if(strpos($header, 'Content-Length: ') === 0) $contentlength = self::_get_header_value($header);
-	else if(strpos($header, 'Content-Type: ') === 0) $contenttype = self::_get_header_value($header);
-	if($contenttype && $contentlength) break;
-      }
-      if(!$contenttype || $contenttype != 'application/vnd.com.hipmob.DeviceFriends+json; version=1.0'){
-
-      }else if(!$contentlength){
-	
-      }else{
-	$responsedata = json_decode(fread($fp, intval($contentlength)));
+      if(is_array($md)){
+	$this->_check_for_errors($md[0]);
+	$contentlength = false;
+	$contenttype = false;
+	foreach($md as $header){
+	  if(strpos($header, 'Content-Length: ') === 0) $contentlength = self::_get_header_value($header);
+	  else if(strpos($header, 'Content-Type: ') === 0) $contenttype = self::_get_header_value($header);
+	  if($contenttype && $contentlength) break;
+	}
+	if(!$contenttype || $contenttype != 'application/vnd.com.hipmob.DeviceFriends+json; version=1.0'){
+	  
+	}else if(!$contentlength){
+	  
+	}else{
+	  $responsedata = json_decode(fread($fp, intval($contentlength)));
+	}
       }
     }
     fclose($fp);
@@ -366,8 +378,10 @@ class Hipmob
     $md = stream_get_meta_data($fp);
     if(isset($md['wrapper_data'])){
       $md = $md['wrapper_data'];
-      $this->_check_for_errors($md[0]);
-      $responsedata = $md[0];
+      if(is_array($md)){
+	$this->_check_for_errors($md[0]);
+	$responsedata = $md[0];
+      }
     }
     fclose($fp);
     
@@ -375,9 +389,9 @@ class Hipmob
       $pattern1 = "/HTTP\/1\.1 200 Friend list updated \((\d*) friends added\)\./";
       $pattern2 = "/HTTP\/1\.1 200 No changes made\./";
 
-      if(preg_match($pattern1, $md[0], $matches) == 1){
+      if(preg_match($pattern1, $responsedata, $matches) == 1){
 	$res = $matches[1];
-      }else if(preg_match($pattern2, $md[0], $matches) == 1){
+      }else if(preg_match($pattern2, $responsedata, $matches) == 1){
 	$res = 0;
       }
     }
@@ -413,8 +427,10 @@ class Hipmob
     $md = stream_get_meta_data($fp);
     if(isset($md['wrapper_data'])){
       $md = $md['wrapper_data'];
-      $this->_check_for_errors($md[0]);
-      $responsedata = $md[0];
+      if(is_array($md)){
+	$this->_check_for_errors($md[0]);
+	$responsedata = $md[0];
+      }
     }
     fclose($fp);
     
@@ -422,9 +438,9 @@ class Hipmob
       $pattern1 = "/HTTP\/1\.1 200 Friend removed\./";
       $pattern2 = "/HTTP\/1\.1 200 No changes made\./";
 
-      if(preg_match($pattern1, $md[0], $matches) == 1){
+      if(preg_match($pattern1, $responsedata, $matches) == 1){
 	$res = 1;
-      }else if(preg_match($pattern2, $md[0], $matches) == 1){
+      }else if(preg_match($pattern2, $responsedata, $matches) == 1){
 	$res = 0;
       }
     }
@@ -458,8 +474,10 @@ class Hipmob
     $md = stream_get_meta_data($fp);
     if(isset($md['wrapper_data'])){
       $md = $md['wrapper_data'];
-      $this->_check_for_errors($md[0]);
-      $responsedata = $md[0];
+      if(is_array($md)){
+	$this->_check_for_errors($md[0]);
+	$responsedata = $md[0];
+      }
     }
     fclose($fp);
     
@@ -467,9 +485,9 @@ class Hipmob
       $pattern1 = "/HTTP\/1\.1 200 Friend list cleared \((\d*) friends removed\)\./";
       $pattern2 = "/HTTP\/1\.1 200 No changes made\./";
 
-      if(preg_match($pattern1, $md[0], $matches) == 1){
+      if(preg_match($pattern1, $responsedata, $matches) == 1){
 	$res = $matches[1];
-      }else if(preg_match($pattern2, $md[0], $matches) == 1){
+      }else if(preg_match($pattern2, $responsedata, $matches) == 1){
 	$res = 0;
       }
     }
@@ -510,8 +528,10 @@ class Hipmob
     $md = stream_get_meta_data($fp);
     if(isset($md['wrapper_data'])){
       $md = $md['wrapper_data'];
-      $this->_check_for_errors($md[0]);
-      $responsedata = $md[0];
+      if(is_array($md)){
+	$this->_check_for_errors($md[0]);
+	$responsedata = $md[0];
+      }
     }
     fclose($fp);
 
@@ -519,12 +539,161 @@ class Hipmob
       $pattern1 = "/HTTP\/1\.1 200 Friend list updated \((\d*) friends added\)\./";
       $pattern2 = "/HTTP\/1\.1 200 No changes made\./";
 
-      if(preg_match($pattern1, $md[0], $matches) == 1){
+      if(preg_match($pattern1, $responsedata, $matches) == 1){
 	$res = $matches[1];
-      }else if(preg_match($pattern2, $md[0], $matches) == 1){
+      }else if(preg_match($pattern2, $responsedata, $matches) == 1){
 	$res = 0;
       }
     }
     return $res;
+  }
+
+  public function _send_text_message($appid, $deviceid, $text)
+  {
+    $app = trim($appid);
+    if($app == "") throw new Hipmob_ApplicationNotSpecifiedError(400, "No application specified"); 
+    $id = trim($deviceid);
+    if($id == "") throw new Hipmob_DeviceNotSpecifiedError(400, "No device specified"); 
+
+    $res = false;
+    
+    $responsedata = false;
+
+    // make the request
+    $url = $this->baseurl . "apps/" . $app . "/devices/" . $id . "/messages";
+    $header = sprintf('Authorization: Basic %s', base64_encode($this->username.':'.$this->apikey));
+    $header .= "\r\nContent-Type: application/x-www-form-urlencoded";
+    
+    // build the content
+    $content = "text=".urlencode($text);
+    $context = stream_context_create(array('http' => array(
+							   // set HTTP method
+							   'method' => 'POST',
+							   'header' => $header,
+							   'timeout' => 10,
+							   'content' => $content
+							   )));
+    $fp = @fopen($url, 'r', false, $context);
+    if($fp == FALSE) throw new Hipmob_AuthenticationError(401, "Unauthorized"); 
+    $md = stream_get_meta_data($fp);
+    if(isset($md['wrapper_data'])){
+      $md = $md['wrapper_data'];
+      if(is_array($md)){
+	$this->_check_for_errors($md[0]);
+	$responsedata = $md[0];
+      }
+    }
+    fclose($fp);
+    
+    if($responsedata){
+      $pattern = "/HTTP\/1\.1 200 Message sent\./";
+
+      if(preg_match($pattern, $responsedata, $matches) == 1){
+	return true;
+      }
+    }
+    return false;
+  }
+
+  public function _send_file_message($appid, $deviceid, $file, $mime_type)
+  {
+    $app = trim($appid);
+    if($app == "") throw new Hipmob_ApplicationNotSpecifiedError(400, "No application specified"); 
+    $id = trim($deviceid);
+    if($id == "") throw new Hipmob_DeviceNotSpecifiedError(400, "No device specified"); 
+    
+    $mime_types = array('image/gif','image/png','image/jpeg','audio/mp3','audio/wav');
+    if(!in_array($mime_type, $mime_types)) throw new Hipmob_FormatNotSupportedError(400, "Invalid message content-type.");
+
+    // verify that the file exists
+    $len = 0;
+    $isfile = false;
+    if(file_exists($file)){
+      // need to return an object that will override toString
+      $len = filesize($file);
+      $isfile = true;
+    }else{
+      $len = strlen($data);
+    }
+    if($len == 0) throw new Hipmob_FormatNotSupportedError(400, "Invalid message content-type.");
+
+    $responsedata = false;    
+    $url = $this->baseurl . "apps/" . $app . "/devices/" . $id . "/messages";
+    if(function_exists('curl_init')){
+      // use curl if it is available so we don't have to load the entire file
+      $ch = curl_init();
+      curl_setopt($ch, CURLOPT_URL, $url);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, TRUE); 
+      curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+      curl_setopt($ch, CURLOPT_USERPWD, $this->username.':'.$this->apikey);
+      curl_setopt($ch, CURLOPT_BINARYTRANSFER, 1);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+      curl_setopt($ch, CURLOPT_HEADER, 1);
+      $fp = false;
+      if($isfile){
+	$fp = fopen($file, 'rb');
+	curl_setopt($ch, CURLOPT_INFILE, $fp);
+	curl_setopt($ch, CURLOPT_INFILESIZE, $len);
+	curl_setopt($ch, CURLOPT_READFUNCTION, array(&$this, '_read_cb'));
+	curl_setopt($ch, CURLOPT_UPLOAD, 1);
+      }else{
+	curl_setopt($ch, CURLOPT_POSTFIELDS, $file);
+      }
+      curl_setopt($ch, CURLOPT_HTTPHEADER, array('Expect:', 'Content-Length: '.$len, 'Content-Type: '.$mime_type));
+      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+      curl_setopt ($ch, CURLOPT_TIMEOUT, 10); 
+      
+      $res = curl_exec($ch);
+      if(!curl_errno($ch)){
+	$info = curl_getinfo($ch);
+	$res = substr($res, 0, $info['header_size']);
+	$responsedata = preg_split('/\r\n|\r|\n/', $res, 2);
+	$responsedata = $responsedata[0];
+      }
+      curl_close($ch);
+      fclose($fp);
+    }else{
+      // no curl: ugh...well, we use file_get_contents. Not the best memory usage, but...
+      if($isfile) $data = file_get_contents($file);
+      $data = $file;
+      
+      // make the request
+      $header = sprintf('Authorization: Basic %s', base64_encode($this->username.':'.$this->apikey));
+      $header .= "\r\nContent-Type: " . $mime_type . "\r\nContent-Length: ".$len;
+      
+      // build the content
+      $context = stream_context_create(array('http' => array(
+							     // set HTTP method
+							     'method' => 'POST',
+							     'header' => $header,
+							     'timeout' => 10,
+							     'content' => $data
+							     )));
+      $fp = @fopen($url, 'r', false, $context);
+      if($fp == FALSE) throw new Hipmob_AuthenticationError(401, "Unauthorized"); 
+      $md = stream_get_meta_data($fp);
+      if(isset($md['wrapper_data'])){
+	$md = $md['wrapper_data'];
+	if(is_array($md)){
+	  $this->_check_for_errors($md[0]);
+	  $responsedata = $md[0];
+	}
+      }
+      fclose($fp);
+    }
+    
+    if($responsedata){
+      $pattern = "/HTTP\/1\.1 200 Message sent\./";
+      
+      if(preg_match($pattern, $responsedata, $matches) == 1){
+	return true;
+      }
+    }
+    return false;
+  }
+  
+  function _read_cb($ch, $fp, $len)
+  {
+    return fread($fp, $len);
   }
 }
