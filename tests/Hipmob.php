@@ -1,6 +1,6 @@
 <?php
 
-echo "Running the Hipmob PHP bindings test suite.\nIf you're trying to use the Hipmobd PHP bindings you'll probably want to require('lib/Hipmob.php'); instead of this file\n";
+echo "Running the Hipmob PHP bindings test suite.\nIf you're trying to use the Hipmob PHP bindings you'll probably want to require('lib/Hipmob.php'); instead of this file\n";
 
 if(!isset($_SERVER['hipmob_username']) || !isset($_SERVER['hipmob_password']) || !isset($_SERVER['hipmob_app'])){
   echo "Please provide the username, password and application mobile key as environment variables.\r\n";
@@ -51,3 +51,13 @@ include(dirname(__FILE__) . '/Hipmob/AddFriendsTest.php');
 include(dirname(__FILE__) . '/Hipmob/SetFriendsTest.php');
 include(dirname(__FILE__) . '/Hipmob/ListFriendsTest.php');
 include(dirname(__FILE__) . '/Hipmob/RemoveAllFriendsTest.php');
+
+echo "==== Check Available Messages ====\r\n";
+include(dirname(__FILE__) . '/Hipmob/CheckAvailableMessagesTest.php');
+
+echo "==== Send Messages ====\r\n";
+include(dirname(__FILE__) . '/Hipmob/SendTextMessageTest.php');
+include(dirname(__FILE__) . '/Hipmob/SendImageMessageTest.php');
+include(dirname(__FILE__) . '/Hipmob/SendAudioMessageTest.php');
+include(dirname(__FILE__) . '/Hipmob/CheckAvailableMessagesTest.php');
+
