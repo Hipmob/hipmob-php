@@ -131,4 +131,16 @@ class Hipmob_Device
   {
     return $this->hipmob->_send_file_message($this->app, $this->id, $file, $mime_type);
   }
+
+  public function generate_peer_token($secret, $friend)
+  {
+    $now = time();
+    return $now . "|" . hash('sha512', $this->id . "|" . $friend->get_id() . "|" . $now . "|" . $secret);
+  }
+
+  public function generate_auth_token($secret)
+  {
+    $now = time();
+    return $now . "|" . hash('sha512', $this->id . "|" . $now . "|" . $secret);
+  }
 }
