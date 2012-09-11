@@ -117,19 +117,19 @@ class Hipmob_Device
     return $this->hipmob->_remove_device_friends($this->app, $this->id);
   }
 
-  public function send_text_message($text)
+  public function send_text_message($text, $autocreate = false)
   {
-    return $this->hipmob->_send_text_message($this->app, $this->id, $text);
+    return $this->hipmob->_send_text_message($this->app, $this->id, $text, $autocreate);
   }
   
-  public function send_picture_message($file, $mime_type)
+  public function send_picture_message($file, $mime_type, $autocreate = false)
   {
-    return $this->hipmob->_send_file_message($this->app, $this->id, $file, $mime_type);
+    return $this->hipmob->_send_file_message($this->app, $this->id, $file, $mime_type, $autocreate);
   }
   
-  public function send_audio_message($file, $mime_type)
+  public function send_audio_message($file, $mime_type, $autocreate = false)
   {
-    return $this->hipmob->_send_file_message($this->app, $this->id, $file, $mime_type);
+    return $this->hipmob->_send_file_message($this->app, $this->id, $file, $mime_type, $autocreate);
   }
 
   public function generate_peer_token($secret, $friend)
