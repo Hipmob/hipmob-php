@@ -548,7 +548,7 @@ class Hipmob
     return $res;
   }
 
-  public function _send_text_message($appid, $deviceid, $text)
+  public function _send_text_message($appid, $deviceid, $text, $autocreate)
   {
     $app = trim($appid);
     if($app == "") throw new Hipmob_ApplicationNotSpecifiedError(400, "No application specified"); 
@@ -566,6 +566,7 @@ class Hipmob
     
     // build the content
     $content = "text=".urlencode($text);
+    if($autocreate) $content .= "&autocreate=true";
     $context = stream_context_create(array('http' => array(
 							   // set HTTP method
 							   'method' => 'POST',
@@ -595,7 +596,7 @@ class Hipmob
     return false;
   }
 
-  public function _send_file_message($appid, $deviceid, $file, $mime_type)
+  public function _send_file_message($appid, $deviceid, $file, $mime_type, $autocreate)
   {
     $app = trim($appid);
     if($app == "") throw new Hipmob_ApplicationNotSpecifiedError(400, "No application specified"); 
@@ -639,7 +640,9 @@ class Hipmob
       }else{
 	curl_setopt($ch, CURLOPT_POSTFIELDS, $file);
       }
-      curl_setopt($ch, CURLOPT_HTTPHEADER, array('Expect:', 'Content-Length: '.$len, 'Content-Type: '.$mime_type));
+      $headers = array('Expect:', 'Content-Length: '.$len, 'Content-Type: '.$mime_type);
+      if(autocreate) $headers[] = 'X-Hipmob-Autocreate: true';
+      curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
       curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
       curl_setopt ($ch, CURLOPT_TIMEOUT, 10); 
       
