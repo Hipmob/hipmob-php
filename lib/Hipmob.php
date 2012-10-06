@@ -287,6 +287,53 @@ class Hipmob
     return 0;
   }
 
+  public function _check_device_status($appid, $deviceid)
+  {
+    $res = false;
+    
+    $app = trim($appid);
+    if($app == "") throw new Hipmob_ApplicationNotSpecifiedError(400, "No application specified"); 
+    $id = trim($deviceid);
+    if($id == "") throw new Hipmob_DeviceNotSpecifiedError(400, "No device specified"); 
+
+    // make the request
+    $url = $this->baseurl . "apps/" . $app . "/devices/" . $id . "/status";
+    $header = sprintf('Authorization: Basic %s', base64_encode($this->username.':'.$this->apikey));
+    $context = stream_context_create(array('http' => array(
+							   // set HTTP method
+							   'method' => 'GET',
+							   'header' => $header,
+							   'timeout' => 10,
+							   )));
+    $fp = @fopen($url, 'r', false, $context);
+    if($fp == FALSE) throw new Hipmob_AuthenticationError(401, "Unauthorized"); 
+    $md = stream_get_meta_data($fp);
+    if(isset($md['wrapper_data'])){
+      $md = $md['wrapper_data'];
+      if(is_array($md)){
+	$this->_check_for_errors($md[0]);
+	$contentlength = false;
+	$contenttype = false;
+	foreach($md as $header){
+	  if(strpos($header, 'Content-Length: ') === 0) $contentlength = self::_get_header_value($header);
+	  else if(strpos($header, 'Content-Type: ') === 0) $contenttype = self::_get_header_value($header);
+	  if($contenttype && $contentlength) break;
+	}
+	if(!$contenttype || $contenttype != 'application/vnd.com.hipmob.Device.status+json; version=1.0'){
+	  
+	}else if(!$contentlength){
+	  
+	}else{
+	  $res = json_decode(fread($fp, intval($contentlength)));
+	}
+      }
+    }
+    fclose($fp);
+    
+    if($res && isset($res->online) && $res->online == 1) return TRUE;
+    return FALSE;
+  }
+
   public function _get_device_friends($appid, $deviceid)
   {
     $app = trim($appid);
