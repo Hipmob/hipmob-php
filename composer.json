@@ -1,7 +1,7 @@
 {
     "name": "hipmob/hipmob-php",
     "description": "Hipmob API PHP Bindings",
-    "version": "0.3.0",
+    "version": "0.3.5",
     "keywords": [ "hipmob","api", "chat"],
     "homepage": "https://www.hipmob.com.com/",	
     "license": "Apache-2.0",

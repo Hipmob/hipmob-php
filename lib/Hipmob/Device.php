@@ -68,6 +68,11 @@ class Hipmob_Device
     return $this->hipmob->_get_available_message_count($this->app, $this->id);
   }
 
+  public function check_device_status()
+  {
+    return $this->hipmob->_check_device_status($this->app, $this->id);
+  }
+
   public function list_friends()
   {
     return $this->hipmob->_get_device_friends($this->app, $this->id);
