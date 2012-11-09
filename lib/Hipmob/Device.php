@@ -126,6 +126,16 @@ class Hipmob_Device
   {
     return $this->hipmob->_send_text_message($this->app, $this->id, $text, $autocreate);
   }
+
+  public function send_json_message($content, $autocreate = false)
+  {
+    return $this->hipmob->_send_json_message($this->app, $this->id, $content, $autocreate);
+  }
+
+  public function send_binary_message($content, $autocreate = false)
+  {
+    return $this->hipmob->_send_binary_message($this->app, $this->id, $content, $autocreate);
+  }
   
   public function send_picture_message($file, $mime_type, $autocreate = false)
   {
