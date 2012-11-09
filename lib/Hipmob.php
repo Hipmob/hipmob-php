@@ -10,6 +10,7 @@ require(dirname(__FILE__) . '/Hipmob/Error.php');
 require(dirname(__FILE__) . '/Hipmob/AuthenticationError.php');
 require(dirname(__FILE__) . '/Hipmob/ApplicationNotSpecifiedError.php');
 require(dirname(__FILE__) . '/Hipmob/DeviceNotSpecifiedError.php');
+require(dirname(__FILE__) . '/Hipmob/InvalidMessageContentError.php');
 require(dirname(__FILE__) . '/Hipmob/FriendNotSpecifiedError.php');
 require(dirname(__FILE__) . '/Hipmob/InvalidRequestError.php');
 require(dirname(__FILE__) . '/Hipmob/ApplicationNotFoundError.php');
@@ -28,13 +29,26 @@ class Hipmob
   private $baseurl = 'https://api.hipmob.com/';
   private static $verifySslCerts = true;
   
-  const VERSION = '0.1.0';
+  const VERSION = '0.2.0';
 
-  public function __construct($username, $apikey)
+  public function __construct($username, $apikey = false)
   {
-    if(!$username || !$apikey) throw new Hipmob_AuthenticationError(401, "Authentication required"); 
+    if(!$username) throw new Hipmob_AuthenticationError(401, "Authentication required");
     $this->username = $username;
-    $this->apikey = $apikey;
+    if(!$apikey){
+      // see if it is a URL we can parse
+      $details = parse_url($username);
+      if(!$details || !$details['host'] || !$details['user'] || !$details['pass'])
+	throw new Hipmob_AuthenticationError(401, "Authentication required"); 
+      $this->username = $details['user'];
+      $this->apikey = $details['pass'];
+      $this->baseurl = isset($details['scheme']) ? $details['scheme'] : "https";
+      $this->baseurl .= "://"+$details['host'];
+      if(isset($details['port'])) $this->baseurl .= ":"+$details['port'];
+      $this->baseurl .= "/";
+    }else{
+      $this->apikey = $apikey;
+    }
     if(isset($_SERVER['hipmob_server'])) $this->baseurl = $_SERVER['hipmob_server'];
   }
   
@@ -247,7 +261,7 @@ class Hipmob
     $app = trim($appid);
     if($app == "") throw new Hipmob_ApplicationNotSpecifiedError(400, "No application specified"); 
     $id = trim($deviceid);
-    if($id == "") throw new Hipmob_DeviceNotSpecifiedError(400, "No device specified"); 
+    if(!$id || $id == "") throw new Hipmob_DeviceNotSpecifiedError(400, "No device specified"); 
 
     // make the request
     $url = $this->baseurl . "apps/" . $app . "/devices/" . $id . "/messagecount";
@@ -291,10 +305,10 @@ class Hipmob
   {
     $res = false;
     
-    $app = trim($appid);
-    if($app == "") throw new Hipmob_ApplicationNotSpecifiedError(400, "No application specified"); 
+    if($appid) $app = trim($appid);
+    if(!$app || $app == "") throw new Hipmob_ApplicationNotSpecifiedError(400, "No application specified"); 
     $id = trim($deviceid);
-    if($id == "") throw new Hipmob_DeviceNotSpecifiedError(400, "No device specified"); 
+    if(!$id || $id == "") throw new Hipmob_DeviceNotSpecifiedError(400, "No device specified"); 
 
     // make the request
     $url = $this->baseurl . "apps/" . $app . "/devices/" . $id . "/status";
@@ -337,9 +351,9 @@ class Hipmob
   public function _get_device_friends($appid, $deviceid)
   {
     $app = trim($appid);
-    if($app == "") throw new Hipmob_ApplicationNotSpecifiedError(400, "No application specified"); 
+    if(!$app || $app == "") throw new Hipmob_ApplicationNotSpecifiedError(400, "No application specified"); 
     $id = trim($deviceid);
-    if($id == "") throw new Hipmob_DeviceNotSpecifiedError(400, "No device specified"); 
+    if(!$id || $id == "") throw new Hipmob_DeviceNotSpecifiedError(400, "No device specified"); 
 
     $res = array();
     
@@ -390,9 +404,9 @@ class Hipmob
   public function _add_device_friends($appid, $deviceid, $devices)
   {
     $app = trim($appid);
-    if($app == "") throw new Hipmob_ApplicationNotSpecifiedError(400, "No application specified"); 
+    if(!$app || $app == "") throw new Hipmob_ApplicationNotSpecifiedError(400, "No application specified"); 
     $id = trim($deviceid);
-    if($id == "") throw new Hipmob_DeviceNotSpecifiedError(400, "No device specified"); 
+    if(!$id || $id == "") throw new Hipmob_DeviceNotSpecifiedError(400, "No device specified"); 
     foreach($devices as $val){
       if(!$val || gettype($val) != "object" || get_class($val) != "Hipmob_Device")
 	throw new Hipmob_FriendNotSpecifiedError(400, "No friends specified"); 
@@ -448,9 +462,9 @@ class Hipmob
   public function _remove_device_friend($appid, $deviceid, $device)
   {
     $app = trim($appid);
-    if($app == "") throw new Hipmob_ApplicationNotSpecifiedError(400, "No application specified"); 
+    if(!$app || $app == "") throw new Hipmob_ApplicationNotSpecifiedError(400, "No application specified"); 
     $id = trim($deviceid);
-    if($id == "") throw new Hipmob_DeviceNotSpecifiedError(400, "No device specified"); 
+    if(!$id || $id == "") throw new Hipmob_DeviceNotSpecifiedError(400, "No device specified"); 
     if(!$device || gettype($device) != "object" || get_class($device) != "Hipmob_Device")
       throw new Hipmob_FriendNotSpecifiedError(400, "No friends specified"); 
     
@@ -497,9 +511,9 @@ class Hipmob
   public function _remove_device_friends($appid, $deviceid)
   {
     $app = trim($appid);
-    if($app == "") throw new Hipmob_ApplicationNotSpecifiedError(400, "No application specified"); 
+    if(!$app || $app == "") throw new Hipmob_ApplicationNotSpecifiedError(400, "No application specified"); 
     $id = trim($deviceid);
-    if($id == "") throw new Hipmob_DeviceNotSpecifiedError(400, "No device specified"); 
+    if(!$id || $id == "") throw new Hipmob_DeviceNotSpecifiedError(400, "No device specified"); 
 
     $res = false;
     
@@ -544,9 +558,9 @@ class Hipmob
   public function _set_device_friends($appid, $deviceid, $devices)
   {
     $app = trim($appid);
-    if($app == "") throw new Hipmob_ApplicationNotSpecifiedError(400, "No application specified"); 
+    if(!$app || $app == "") throw new Hipmob_ApplicationNotSpecifiedError(400, "No application specified"); 
     $id = trim($deviceid);
-    if($id == "") throw new Hipmob_DeviceNotSpecifiedError(400, "No device specified"); 
+    if(!$id || $id == "") throw new Hipmob_DeviceNotSpecifiedError(400, "No device specified"); 
 
     $res = false;
     
@@ -598,10 +612,10 @@ class Hipmob
   public function _send_text_message($appid, $deviceid, $text, $autocreate)
   {
     $app = trim($appid);
-    if($app == "") throw new Hipmob_ApplicationNotSpecifiedError(400, "No application specified"); 
+    if(!$app || $app == "") throw new Hipmob_ApplicationNotSpecifiedError(400, "No application specified"); 
     $id = trim($deviceid);
-    if($id == "") throw new Hipmob_DeviceNotSpecifiedError(400, "No device specified"); 
-
+    if(!$id || $id == "") throw new Hipmob_DeviceNotSpecifiedError(400, "No device specified"); 
+    if(!$text || trim($text) == "") throw new Hipmob_InvalidMessageContentError(400, "No message content specified");
     $res = false;
     
     $responsedata = false;
@@ -643,12 +657,107 @@ class Hipmob
     return false;
   }
 
+  public function _send_json_message($appid, $deviceid, $content, $autocreate)
+  {
+    $app = trim($appid);
+    if(!$app || $app == "") throw new Hipmob_ApplicationNotSpecifiedError(400, "No application specified"); 
+    $id = trim($deviceid);
+    if(!$id || $id == "") throw new Hipmob_DeviceNotSpecifiedError(400, "No device specified"); 
+    if(!$content || !(is_array($content) || $content instanceof stdClass)) throw new Hipmob_InvalidMessageContentError(400, "No message content specified");
+   
+    $res = false;
+    
+    $responsedata = false;
+
+    // make the request
+    $url = $this->baseurl . "apps/" . $app . "/devices/" . $id . "/messages";
+    $header = sprintf('Authorization: Basic %s', base64_encode($this->username.':'.$this->apikey));
+    $header .= "\r\nContent-Type: application/json";
+    if($autocreate) $header .= "\r\nX-Hipmob-Autocreate: true";
+    
+    // and, send it
+    $context = stream_context_create(array('http' => array(
+							   // set HTTP method
+							   'method' => 'POST',
+							   'header' => $header,
+							   'timeout' => 10,
+							   'content' => json_encode($content)
+							   )));
+    $fp = @fopen($url, 'r', false, $context);
+    if($fp == FALSE) throw new Hipmob_AuthenticationError(401, "Unauthorized"); 
+    $md = stream_get_meta_data($fp);
+    if(isset($md['wrapper_data'])){
+      $md = $md['wrapper_data'];
+      if(is_array($md)){
+	$this->_check_for_errors($md[0]);
+	$responsedata = $md[0];
+      }
+    }
+    fclose($fp);
+    
+    if($responsedata){
+      $pattern = "/HTTP\/1\.1 200 Message sent\./";
+
+      if(preg_match($pattern, $responsedata, $matches) == 1){
+	return true;
+      }
+    }
+    return false;
+  }
+
+  public function _send_binary_message($appid, $deviceid, $content, $autocreate)
+  {
+    $app = trim($appid);
+    if(!$app || $app == "") throw new Hipmob_ApplicationNotSpecifiedError(400, "No application specified"); 
+    $id = trim($deviceid);
+    if(!$id || $id == "") throw new Hipmob_DeviceNotSpecifiedError(400, "No device specified"); 
+    if(!$content) throw new Hipmob_InvalidMessageContentError(400, "No message content specified");
+
+    $res = false;
+    
+    $responsedata = false;
+
+    // make the request
+    $url = $this->baseurl . "apps/" . $app . "/devices/" . $id . "/messages";
+    $header = sprintf('Authorization: Basic %s', base64_encode($this->username.':'.$this->apikey));
+    $header .= "\r\nContent-Type: application/octet-stream";
+    if($autocreate) $header .= "\r\nX-Hipmob-Autocreate: true";
+    
+    // and, send
+    $context = stream_context_create(array('http' => array(
+							   // set HTTP method
+							   'method' => 'POST',
+							   'header' => $header,
+							   'timeout' => 10,
+							   'content' => $content
+							   )));
+    $fp = @fopen($url, 'r', false, $context);
+    if($fp == FALSE) throw new Hipmob_AuthenticationError(401, "Unauthorized"); 
+    $md = stream_get_meta_data($fp);
+    if(isset($md['wrapper_data'])){
+      $md = $md['wrapper_data'];
+      if(is_array($md)){
+	$this->_check_for_errors($md[0]);
+	$responsedata = $md[0];
+      }
+    }
+    fclose($fp);
+    
+    if($responsedata){
+      $pattern = "/HTTP\/1\.1 200 Message sent\./";
+
+      if(preg_match($pattern, $responsedata, $matches) == 1){
+	return true;
+      }
+    }
+    return false;
+  }
   public function _send_file_message($appid, $deviceid, $file, $mime_type, $autocreate)
   {
     $app = trim($appid);
-    if($app == "") throw new Hipmob_ApplicationNotSpecifiedError(400, "No application specified"); 
+    if(!$app || $app == "") throw new Hipmob_ApplicationNotSpecifiedError(400, "No application specified"); 
     $id = trim($deviceid);
-    if($id == "") throw new Hipmob_DeviceNotSpecifiedError(400, "No device specified"); 
+    if(!$id || $id == "") throw new Hipmob_DeviceNotSpecifiedError(400, "No device specified"); 
     
     $mime_types = array('image/gif','image/png','image/jpeg','audio/mp3','audio/wav');
     if(!in_array($mime_type, $mime_types)) throw new Hipmob_FormatNotSupportedError(400, "Invalid message content-type.");
@@ -688,7 +797,7 @@ class Hipmob
 	curl_setopt($ch, CURLOPT_POSTFIELDS, $file);
       }
       $headers = array('Expect:', 'Content-Length: '.$len, 'Content-Type: '.$mime_type);
-      if(autocreate) $headers[] = 'X-Hipmob-Autocreate: true';
+      if($autocreate) $headers[] = 'X-Hipmob-Autocreate: true';
       curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
       curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
       curl_setopt ($ch, CURLOPT_TIMEOUT, 10); 
