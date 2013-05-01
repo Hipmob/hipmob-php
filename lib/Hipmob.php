@@ -35,11 +35,7 @@ class Hipmob
   private $baseurl = 'https://api.hipmob.com/';
   private static $verifySslCerts = true;
   
-<<<<<<< HEAD
-  const VERSION = '0.2.0';
-=======
   const VERSION = '0.4.0';
->>>>>>> internal
 
   public function __construct($username, $apikey = false)
   {
