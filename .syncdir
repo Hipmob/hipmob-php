@@ -1,8 +1,0 @@
-#
-# Directory sync configuration file
-#
-
-list: plink root@www.hipmob.com "cd /root/hipmob-php/; find -H . -type f -exec md5sum '{}' \;"
-fetch: pscp root@www.hipmob.com:/root/hipmob-php/%s %s
-ignore: *~
-ignore: ./.git*
