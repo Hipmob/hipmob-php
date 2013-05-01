@@ -8,6 +8,7 @@ if (!function_exists('json_decode')) {
 // Errors
 require(dirname(__FILE__) . '/Hipmob/Error.php');
 require(dirname(__FILE__) . '/Hipmob/AuthenticationError.php');
+require(dirname(__FILE__) . '/Hipmob/AuthorizationError.php');
 require(dirname(__FILE__) . '/Hipmob/ApplicationNotSpecifiedError.php');
 require(dirname(__FILE__) . '/Hipmob/DeviceNotSpecifiedError.php');
 require(dirname(__FILE__) . '/Hipmob/InvalidMessageContentError.php');
@@ -16,10 +17,15 @@ require(dirname(__FILE__) . '/Hipmob/InvalidRequestError.php');
 require(dirname(__FILE__) . '/Hipmob/ApplicationNotFoundError.php');
 require(dirname(__FILE__) . '/Hipmob/DeviceNotFoundError.php');
 require(dirname(__FILE__) . '/Hipmob/FormatNotSupportedError.php');
+require(dirname(__FILE__) . '/Hipmob/UserNotFoundError.php');
+require(dirname(__FILE__) . '/Hipmob/UserNotSpecifiedError.php');
+require(dirname(__FILE__) . '/Hipmob/UserStatusNotSpecifiedError.php');
+require(dirname(__FILE__) . '/Hipmob/InvalidUserStatusSpecifiedError.php');
 
 // Hipmob API Resources
 require(dirname(__FILE__) . '/Hipmob/App.php');
 require(dirname(__FILE__) . '/Hipmob/Device.php');
+require(dirname(__FILE__) . '/Hipmob/User.php');
 
 class Hipmob
 {
@@ -29,7 +35,7 @@ class Hipmob
   private $baseurl = 'https://api.hipmob.com/';
   private static $verifySslCerts = true;
   
-  const VERSION = '0.2.0';
+  const VERSION = '0.4.0';
 
   public function __construct($username, $apikey = false)
   {
@@ -136,10 +142,15 @@ class Hipmob
     $pattern6 = "/HTTP\/1\.1 400 No friends specified\./";
     $pattern7 = "/HTTP\/1\.1 401 Unauthorized/";
     $pattern8 = "/HTTP\/1\.1 401 Authentication required/";
-    
-    if(preg_match($pattern1, $statusline, $matches) == 1){
-      throw new Hipmob_AuthenticationError(401, "Unauthorized"); 
-    }else if(preg_match($pattern1, $statusline, $matches) == 1){
+    $pattern9 = "/HTTP\/1\.1 404 User not found\./";
+    $pattern10 = "/HTTP\/1\.1 400 No user specified\./";
+    $pattern11 = "/HTTP\/1\.1 400 No status specified\./";
+    $pattern12 = "/HTTP\/1\.1 400 Invalid status specified\./";
+    $pattern13 = "/HTTP\/1\.1 400 You can only change your own status\./";
+
+    if(preg_match($pattern7, $statusline, $matches) == 1){
+      throw new Hipmob_AuthorizationError(401, "Unauthorized"); 
+    }else if(preg_match($pattern8, $statusline, $matches) == 1){
       throw new Hipmob_AuthenticationError(401, "Authentication required"); 
     }else if(preg_match($pattern1, $statusline, $matches) == 1){
       throw new Hipmob_ApplicationNotSpecifiedError(400, "No application specified"); 
@@ -153,6 +164,16 @@ class Hipmob
       throw new Hipmob_ApplicationNotFoundError(404, "Application not found");
     }else if(preg_match($pattern6, $statusline, $matches) == 1){
       throw new Hipmob_FriendsNotSpecifiedError(400, "No friends specified"); 
+    }else if(preg_match($pattern9, $statusline, $matches) == 1){
+      throw new Hipmob_UserNotFoundError(400, "User not found");
+    }else if(preg_match($pattern10, $statusline, $matches) == 1){
+      throw new Hipmob_UserNotSpecifiedError(400, "No user specified");
+    }else if(preg_match($pattern11, $statusline, $matches) == 1){
+      throw new Hipmob_UserStatusNotSpecifiedError(400, "No status specified");
+    }else if(preg_match($pattern12, $statusline, $matches) == 1){
+      throw new Hipmob_InvalidUserStatusSpecifiedError(400, "Invalid status specified");
+    }else if(preg_match($pattern13, $statusline, $matches) == 1){
+      throw new Hipmob_AuthorizationError(401, "You can only change your own status");
     }
   }
 
@@ -854,5 +875,93 @@ class Hipmob
   function _read_cb($ch, $fp, $len)
   {
     return fread($fp, $len);
+  }
+
+  public function get_user($username)
+  {
+    $res = false;
+    
+    // make the request
+    if(!$username || trim($username) == "") throw new Hipmob_UserNotSpecifiedError(400, "No user specified"); 
+    $url = $this->baseurl . "user/" . trim($username);
+    $header = sprintf('Authorization: Basic %s', base64_encode($this->username.':'.$this->apikey));
+    $context = stream_context_create(array('http' => array(
+							   // set HTTP method
+							   'method' => 'GET',
+							   'header' => $header,
+							   'timeout' => 10,
+							   )));
+    $fp = @fopen($url, 'r', false, $context);
+    if($fp == FALSE) throw new Hipmob_AuthorizationError(401, "Unauthorized"); 
+    $md = stream_get_meta_data($fp);
+    if(isset($md['wrapper_data'])){
+      $md = $md['wrapper_data'];
+      if(is_array($md)){
+	$this->_check_for_errors($md[0]);
+	$contentlength = false;
+	$contenttype = false;
+	foreach($md as $header){
+	  if(strpos($header, 'Content-Length: ') === 0) $contentlength = self::_get_header_value($header);
+	  else if(strpos($header, 'Content-Type: ') === 0) $contenttype = self::_get_header_value($header);
+	  if($contenttype && $contentlength) break;
+	}
+	if(!$contenttype || $contenttype != 'application/vnd.com.hipmob.User+json; version=1.0'){
+	  
+	}else if(!$contentlength){
+	  
+	}else{
+	  $res = json_decode(fread($fp, intval($contentlength)));
+	}
+      }
+    }
+    fclose($fp);
+    
+    if($res){
+      $res = new Hipmob_User($this, $res);
+    }
+    return $res;
+  }
+
+  public function _set_user_status($username, $status)
+  {
+    if(!$username || $username == "") throw new Hipmob_UserNotSpecifiedError(400, "No user specified"); 
+    if(!$status || $status == "") throw new Hipmob_UserStatusNotSpecified(400, "No status specified");
+    if(!($status == "online" || $status == "offline" || $status == "hours" || $status == "usestatus")) throw new Hipmob_InvalidUserStatusSpecified(400, "Invalid status specified");
+    $res = false;
+    
+    $responsedata = false;
+
+    // make the request
+    $url = $this->baseurl . "user/" . $username . "/status";
+    $header = sprintf('Authorization: Basic %s', base64_encode($this->username.':'.$this->apikey));
+    $header .= "\r\nContent-Type: application/x-www-form-urlencoded";
+    
+    // build the content
+    $content = "status=".urlencode($status);
+    $context = stream_context_create(array('http' => array(
+							   // set HTTP method
+							   'method' => 'POST',
+							   'header' => $header,
+							   'timeout' => 10,
+							   'content' => $content
+							   )));
+    $fp = @fopen($url, 'r', false, $context);
+    if($fp == FALSE) throw new Hipmob_AuthorizationError(401, "Unauthorized"); 
+    $md = stream_get_meta_data($fp);
+    if(isset($md['wrapper_data'])){
+      $md = $md['wrapper_data'];
+      if(is_array($md)){
+	$this->_check_for_errors($md[0]);
+	$responsedata = $md[0];
+      }
+    }
+    fclose($fp);
+    if($responsedata){
+      $pattern = "/HTTP\/1\.1 200 \[".$username."\] status updated to \"".$status."\"/";
+      if(preg_match($pattern, $responsedata, $matches) == 1){
+	return true;
+      }
+    }
+    return false;
   }
 }
