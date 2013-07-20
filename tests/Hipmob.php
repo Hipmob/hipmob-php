@@ -124,6 +124,12 @@ if(isset($tests['all']) || isset($tests['send_text'])){
   include(dirname(__FILE__) . '/Hipmob/CheckAvailableMessagesTest.php');
  }
 
+if(isset($tests['all']) || isset($tests['send_bulk_text'])){
+  echo "==== Send Bulk Text Messages ====\r\n";
+  include(dirname(__FILE__) . '/Hipmob/SendBulkTextMessageTest.php');
+  include(dirname(__FILE__) . '/Hipmob/CheckBulkAvailableMessagesTest.php');
+ }
+
 if(isset($tests['all']) || isset($tests['send_json'])){
   echo "==== Send JSON Message ====\r\n";
   include(dirname(__FILE__) . '/Hipmob/SendJSONMessageTest.php');

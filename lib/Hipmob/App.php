@@ -40,4 +40,9 @@ class Hipmob_App
     if($this->modified) $res[''] = date('U', $this->modified);
     return json_encode($res);
   }
+
+  public function send_text_messages($text, $devices)
+  {
+    return $this->hipmob->_send_text_messages($this->id, $devices, $text);
+  }
 }
